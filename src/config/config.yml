@@ -1,0 +1,40 @@
+paths:
+    entities: 'data/raw/sample_manufacturers.csv'
+    databases:
+      test_train: 'data/processed/test_train_database.db'
+
+data:
+  tables:
+    sentence_level: 'SentenceLevelData'
+    page_level: 'PageLevelData'
+  attributes:
+    isMerger:
+      name: Merger
+      desc: Data represents a merger
+    isAcquisition:
+      name: Acquisition
+      desc: Data represents an acquisition
+    isMergerOrAcquisition:
+      name: Either
+      desc: Data represents either a merger or an acquisition
+
+collection:
+  google_search:
+    tld: 'ca'
+    num: 25
+    stop: 25
+    pause: 2
+  templates:
+    - '{} merger'
+    - '{} acquisition'
+
+tagging:
+  options:
+    - name: Merger
+      values: [1, 0, 1]
+    - name: Acquisition
+      values: [ 0, 1, 1 ]
+    - name: Both
+      values: [ 1, 1, 1 ]
+    - name: Neither
+      values: [ 0, 0, 0 ]
