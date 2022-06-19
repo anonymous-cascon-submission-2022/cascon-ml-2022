@@ -8,6 +8,7 @@ scikit_learn==1.0.2
 SQLAlchemy==1.4.27
 torch==1.11.0
 transformers==4.17.0
+sentencepiece==0.1.95
 
 scikit-learn~=1.0.2
 PyYAML~=6.0
