@@ -1,3 +1,8 @@
+from src import config
+import math
+
+criteria = config['confidence']['score_criteria']
+
 """
 Confidence Score Legend
 
@@ -6,41 +11,42 @@ Confidence Score Legend
 3 - Likely Merger or Acquisition
 4 - Confident Merger or Acquisition
 5 - High Confidence Merger or Acquisition
-
-
 """
-import math
 
 
-def calculate_sentence_confidence_score(is_merger_or_acquisition, is_merger, is_acquisition, involved_companies) -> int:
+def matches_pattern(pattern, row):
+    if 'either' in pattern:
+        for prop in pattern['either']:
+            if matches_pattern(prop, row):
+                return True
+        return False
+    else:
+        prop = list(pattern.keys())[0]
+        if 'equals' in pattern[prop] and (str(row[prop]) == str(pattern[prop]['equals'])):
+            return True
+        elif 'greater_than' in pattern[prop] and (float(row[prop]) > float(pattern[prop]['equals'])):
+            return True
+        elif 'less_than' in pattern[prop] and (float(row[prop]) < float(pattern[prop]['equals'])):
+            return True
+        else:
+            return False
+
+
+def calculate_sentence_confidence_score(row) -> int:
     """
-    Calculate the confidence score of a processed sentence
+    Calculate the confidence score of a processed sentence.
 
-    :param is_merger_or_acquisition: int, 1 if is merger or acquisition
-    :param is_merger:  int, 1 if is merger
-    :param is_acquisition:  int, 1 if is acquisition
-    :param involved_companies: list, companies involved in sentence
+    Confidence scores are determined based on patterns defined within the "confidence" section
+    in the config.yml file.
+
+    Confidence scores should be graded out of the total number of patterns defined within the configuration.
+
     :return: int, confidence score
     """
-    score = 1
-
-    # is the sentence detected as a merger or an acquisition
-    if is_merger_or_acquisition == 1:
-        score += 1
-
-    # is the sentence specified as a merger or specified as an acquisition
-    if is_merger == 1 or is_acquisition == 1:
-        score += 1
-
-    # does the sentence have NER
-    if involved_companies:
-        if not involved_companies[0] == '{}':
+    score = 0
+    for pattern in criteria:
+        if matches_pattern(pattern, row):
             score += 1
-
-    # does the sentence have multiple organizations mentioned
-    if len(involved_companies) > 1:
-        score += 1
-
     return score
 
 

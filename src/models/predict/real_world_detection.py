@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from transformers import BertTokenizer, BertForSequenceClassification, Trainer, LongformerForSequenceClassification, \
     LongformerTokenizer, pipeline
 
-from src.features import data_cleaning, link_grabber
+from src.features import link_grabber
 from src.models.predict.calculate_confidence_score import calculate_sentence_confidence_score, \
     calculate_abstracted_confidence_score
 
@@ -20,6 +20,7 @@ database_name = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data'
                              'liveMergersAcquisitionsDB.db')
 
 MAIN_RAW_DATA_PATH = '../../../data/raw/Potential_M&A_Activities.csv'
+
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, encodings, labels=None):
@@ -185,8 +186,7 @@ async def generate_results_db(url_list: list, company_name: str, sentence_table_
                         lambda z: ["{}"])
 
                 sentences_sanitized['confidenceScore'] = sentences_sanitized.apply(
-                    lambda z: calculate_sentence_confidence_score(z['isMergerOrAcquisition'], z['isMerger'],
-                                                                  z['isAcquisition'], z['involvedCompany']), axis=1)
+                    lambda z: calculate_sentence_confidence_score(z), axis=1)
 
                 sentences_sanitized = pd.DataFrame(
                     {col: np.repeat(sentences_sanitized[col].values, sentences_sanitized['involvedCompany'].str.len())

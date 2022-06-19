@@ -8,7 +8,6 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
 from src import config
 from src.features import data_cleaning, link_grabber
 
-
 # If the script is passed a path to a CSV file, it will use that file for processing
 filename = Path(Path(__file__).parent.parent.parent, config['paths']['entities'])
 

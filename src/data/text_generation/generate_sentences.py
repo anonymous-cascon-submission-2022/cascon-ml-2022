@@ -1,12 +1,17 @@
 import random
 import warnings
+from pathlib import Path
 
 import pandas as pd
 import torch
 from sqlalchemy import create_engine
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 
+from src import config
+
 warnings.filterwarnings("ignore")
+
+sentence_table_name = config['data']['tables']['sentence_level']
 
 
 def random_state(seed):
@@ -32,53 +37,13 @@ def get_response(input_text, num_return_sequences, num_beams):
     return tgt_text
 
 
-template_phrases = [
-    "CMP1 has acquired CMP2 <filler>",
-    'CMP1 announced its intention to acquire CMP2 <filler>',
-    'CMP1 acquired CMP2 <filler>',
-    'CMP1 to acquire CMP2 <filler>'
-    'CMP1 to buy CMP2 <filler>',
-    'CMP1 closes deal to buy CMP2 <filler>',
-    'CMP1 completed its acquisition of CMP2 <filler>',
-    'CMP2 was acquired by CMP1 <filler>',
-    'CMP2 has been acquired by CMP1 <filler>',
-    'CMP1 merges with CMP2 <filler>',
-    'CMP1 and CMP2 have begun their merger <filler>',
-]
+template_phrases = config['synthetic_data']['template_phrases']
 
-filler = [
-    'today',
-    'yesterday',
-    'recently',
-    'in a recent business move',
-    'in an attempt to improve service',
-    'this week',
-    'this month',
-    'in $<decimal> billion deal',
-    'in $<decimal> bn deal',
-    'in $<integer> million deal',
-    'in $<integer> mn deal',
-    'for a sum total of $<decimal> billion',
-    'for a value of $<decimal> billion',
-    'for a sum total of $<integer> million',
-    'for a value of $<integer> million',
-    'for $<integer> million',
-    'for $<decimal> billion',
-    'as part of a new corporate plan',
-    ''
-]
+filler = config['synthetic_data']['filler']
 
-terminators = [
-    'llc',
-    'limited',
-    'ltd',
-    'inc',
-    'corp',
-    'incorporated',
-    'co'
-]
+terminators = config['synthetic_data']['terminators']
 
-company_name_file = open('training_company_names.txt')
+company_name_file = open(config['synthetic_data']['entity_name_file'])
 company_names = [line.rstrip() for line in company_name_file]
 company_name_file.close()
 
@@ -119,31 +84,45 @@ def generate_phrases():
     return list_phrases
 
 
+db_columns = [
+    config['synthetic_sentence_schema']['attribute'],
+    config['synthetic_sentence_schema']['target'],
+    config['synthetic_sentence_schema']['entity']
+]
+
+for key in list(config['synthetic_sentence_schema']['defaults'].keys()):
+    db_columns.append(key)
+
 phrase_df = pd.DataFrame(
     {},
-    columns=["text", "isMerger", "isAcquisition", "isMergerOrAcquisition", "website"],
+    columns=db_columns,
 )
 
 phrases = generate_phrases()
 for phrase in phrases:
-    phrase_df = phrase_df.append(
-        {
-            "text": phrase[0],
-            "isMerger": float("NaN"),
-            "isAcquisition": float("NaN"),
-            "isMergerOrAcquisition": 1,
-            "website": 'RANDOMLY_GENERATED_FAKE_DATA',
-            "company": phrase[1],
-        },
-        ignore_index=True,
-    )
+
+    phrase_dict = {
+        config['synthetic_sentence_schema']['attribute']: phrase[0],
+        config['synthetic_sentence_schema']['target']: 1,
+        config['synthetic_sentence_schema']['entity']: phrase[1]
+    }
+
+    for key in list(config['synthetic_sentence_schema']['defaults'].keys()):
+        value = config['synthetic_sentence_schema']['defaults'][key]
+        if value is not None:
+            phrase_dict.update({key: value})
+        else:
+            phrase_dict.update({key: float("NaN")})
+
+    phrase_df = phrase_df.append(phrase_dict, ignore_index=True)
 
 print(phrase_df)
+
 engine = create_engine(
-    "sqlite:///../../../data/processed/test_train_database.db", echo=True
+    f'sqlite:///{Path(Path(__file__).parent.parent.parent.parent, config["paths"]["databases"]["test_train"])}',
+    echo=True
 )
 sqlite_connection = engine.connect()
-sentence_table_name = "DryCleaned"
 phrase_df.to_sql(
     sentence_table_name, sqlite_connection, if_exists="append", index=False
 )

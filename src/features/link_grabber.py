@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 from googlesearch import search
+
 from src import config
 
 # Used to remove duplicate URLs
