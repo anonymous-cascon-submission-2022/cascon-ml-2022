@@ -2,6 +2,8 @@ paths:
   entities: 'data/raw/sample_manufacturers.csv'
   databases:
     test_train: 'data/processed/test_train_database.db'
+    live_prediction: 'data/processed/live_prediction_database.db'
+
 
 data:
   tables:
@@ -18,6 +20,7 @@ data:
       name: Either
       desc: Data represents either a merger or an acquisition
 
+
 classifier:
   page_level:
     table: 'PageLevelData'
@@ -27,6 +30,7 @@ classifier:
     negative_sample_ratio: 0.7
     negatives_to_positives_ratio: -1
     model_name: "allenai/longformer-base-4096"
+    model_path: 'models/PageLevelData/isMergerOrAcquisition_weights'
   isMerger:
     table: 'SentenceLevelData'
     attribute: 'text'
@@ -35,6 +39,7 @@ classifier:
     negative_sample_ratio: 0.7
     negatives_to_positives_ratio: 3.5
     model_name: "bert-base-uncased"
+    model_path: 'models/SentenceLevelData/isMerger_weights'
   isAcquisition:
     table: 'SentenceLevelData'
     attribute: 'text'
@@ -43,6 +48,7 @@ classifier:
     negative_sample_ratio: 0.7
     negatives_to_positives_ratio: 3.5
     model_name: "bert-base-uncased"
+    model_path: 'models/SentenceLevelData/isAcquisition_weights'
   isMergerOrAcquisition:
     table: 'SentenceLevelData'
     attribute: 'text'
@@ -51,6 +57,8 @@ classifier:
     negative_sample_ratio: 0.7
     negatives_to_positives_ratio: 3.5
     model_name: "bert-base-uncased"
+    model_path: 'models/SentenceLevelData/isMergerOrAcquisition_weights'
+
 
 collection:
   google_search:
@@ -61,6 +69,7 @@ collection:
   templates:
     - '{} merger'
     - '{} acquisition'
+
 
 tagging:
   options:
@@ -73,6 +82,7 @@ tagging:
     - name: Neither
       values: [ 0, 0, 0 ]
 
+
 confidence:
   score_criteria:
     - isMergerOrAcquisition:
@@ -83,6 +93,7 @@ confidence:
         - isAcquisition:
             equals: 1
 
+
 synthetic_sentence_schema:
   attribute: 'text'
   target: 'isMergerOrAcquisition'
@@ -92,6 +103,7 @@ synthetic_sentence_schema:
     isAcquisition: ~
     website: 'RANDOMLY_GENERATED_FAKE_DATA'
 
+
 synthetic_page_schema:
   attribute: 'text'
   target: 'website'
@@ -100,6 +112,7 @@ synthetic_page_schema:
     isMerger: 0
     isAcquisition: 0
     isMergerOrAcquisition: 0
+
 
 synthetic_data:
   template_phrases:
