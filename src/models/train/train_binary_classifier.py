@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from pathlib import Path
 
@@ -52,7 +53,8 @@ def train_binary_classifier(classifier: str):
     dataset = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
 
     model_name = config['classifier'][classifier]['model_name']
-    model_path = f"../../../models/{model_name}_weights"
+    model_path = os.path.join(os.path.dirname(__file__),
+                              '..', '..', '..', config['classifier'][classifier]['model_path'])
     column_name = config['classifier'][classifier]['attribute_labels']
 
     # Do rough simple stratification of the data
