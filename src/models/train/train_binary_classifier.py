@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import torch
 from sklearn.metrics import (
     accuracy_score,
     recall_score,
@@ -14,33 +13,17 @@ from sklearn.metrics import (
     classification_report,
 )
 from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader
 from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import LongformerTokenizer, LongformerForSequenceClassification, EarlyStoppingCallback, \
     TrainingArguments, Trainer
 
 from src import config
+from src.models.helper.dataset import Dataset
 
 """
 :description Script which Generates and Trains Classifiers based upon config.yml
 
 """
-
-
-# Create torch dataset
-class Dataset(torch.utils.data.Dataset):
-    def __init__(self, encodings, labels=None):
-        self.encodings = encodings
-        self.labels = labels
-
-    def __getitem__(self, idx):
-        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
-        if self.labels:
-            item["labels"] = torch.tensor(self.labels[idx])
-        return item
-
-    def __len__(self):
-        return len(self.encodings["input_ids"])
 
 
 def train_binary_classifier(classifier: str):
